@@ -18,11 +18,23 @@ return Parser.Default.ParseArguments<ConvertOptions, GenerateOptions, BenchmarkO
             asdf.Setup();
             // asdf.NPOI();
 
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+
             using (var fs = File.Create("result/npoi.xlsx"))
             {
-                var filearr = asdf.NPOI();
+                var filearr = asdf.NPOI_new();
                 fs.Write(filearr);
             }
+
+            watch.Stop();
+            var elapsedMs = watch.ElapsedMilliseconds;
+            TimeSpan timeSpan = TimeSpan.FromMilliseconds(elapsedMs);
+            string readableTime = string.Format("{0:D2}:{1:D2}:{2:D2}.{3:D3}",
+                timeSpan.Hours,
+                timeSpan.Minutes,
+                timeSpan.Seconds,
+                timeSpan.Milliseconds);
+            Console.WriteLine($"Export time: {readableTime}");
 
             return 0;
         },
@@ -32,11 +44,24 @@ return Parser.Default.ParseArguments<ConvertOptions, GenerateOptions, BenchmarkO
             asdf.Setup();
             // asdf.OpenXML();
 
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+
             using (var fs = File.Create("result/openxml.xlsx"))
             {
                 var filearr = asdf.OpenXML();
                 fs.Write(filearr);
             }
+
+            watch.Stop();
+            var elapsedMs = watch.ElapsedMilliseconds;
+            TimeSpan timeSpan = TimeSpan.FromMilliseconds(elapsedMs);
+            string readableTime = string.Format("{0:D2}:{1:D2}:{2:D2}.{3:D3}",
+                timeSpan.Hours,
+                timeSpan.Minutes,
+                timeSpan.Seconds,
+                timeSpan.Milliseconds);
+            Console.WriteLine($"Export time: {readableTime}");
+
             return 0;
         },
         (SingleBenchmarkOptions opts) =>

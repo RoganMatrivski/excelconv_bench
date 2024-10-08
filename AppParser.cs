@@ -2,6 +2,8 @@ using System.Data;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
+using SixLabors.Fonts;
+using System.Linq;
 
 public static class AppParser
 {
@@ -31,6 +33,7 @@ public static class AppParser
         {
             throw new Exception("No data found in the file");
         }
+
 
         using (var workbook = SpreadsheetDocument.Create(opts.OutputPath, SpreadsheetDocumentType.Workbook))
         {
@@ -65,6 +68,7 @@ public static class AppParser
                 sheetData.AppendChild(newRow);
             }
 
+
             workbookPart.Workbook.Save();
         }
 
@@ -76,11 +80,22 @@ public static class AppParser
     public static byte[] ConvertTable(DataTable dataTable)
     {
         var outputStream = new MemoryStream();
-		
+
         if (dataTable.Rows.Count <= 0)
         {
             throw new Exception("No data found in the file");
         }
+
+
+        var defaultCharWidth = Helper.GetDefaultCharWidth();
+
+        var longestStringByColumns = dataTable.Columns.Cast<DataColumn>()
+        .Select(col => dataTable
+                .AsEnumerable()
+                .Select(row => row[col]?.ToString() ?? string.Empty)
+                .OrderByDescending(str => str?.Length ?? 0)
+                .FirstOrDefault())
+        .ToList();
 
         using (var workbook = SpreadsheetDocument.Create(outputStream, SpreadsheetDocumentType.Workbook))
         {
@@ -88,7 +103,27 @@ public static class AppParser
             workbookPart.Workbook = new Workbook();
             var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
             var sheetData = new SheetData();
-            worksheetPart.Worksheet = new Worksheet(sheetData);
+
+            // Set column width
+            var columns = new Columns();
+            for (uint i = 1; i <= dataTable.Columns.Count; i++) // Assuming you want to set width for each column
+            {
+                // Measure string padded with some char for some padding space
+                // It won't be visible in the final result, i promise
+                var stringWidth = Helper.GetStringWidth(longestStringByColumns[Convert.ToInt32(i - 1)] + new string('0', 6) ?? "", defaultCharWidth);
+                // Console.WriteLine(Math.Min(256, stringWidth / 256));
+
+                var column = new Column
+                {
+                    Min = i,
+                    Max = i,
+                    Width = Math.Min(256, stringWidth / 256), // Width in characters
+                    CustomWidth = true
+                };
+                columns.Append(column);
+            }
+
+            worksheetPart.Worksheet = new Worksheet(columns, sheetData);
 
             var sheets = workbookPart.Workbook.AppendChild(new Sheets());
             var sheet = new Sheet() { Id = workbookPart.GetIdOfPart(worksheetPart), SheetId = 1, Name = "Sheet1" };
@@ -115,9 +150,23 @@ public static class AppParser
                 sheetData.AppendChild(newRow);
             }
 
+            // for (int i = 0; i < dataTable.Columns.Count; i++)
+            // foreach (var (i, col) in sheet.Elements<Column>().Select((c, i) => (i, c)))
+            // {
+            //     var txtSize = Helper.GetStringWidth(longestStringByColumns[i] ?? "", defaultCharWidth);
+
+            //     col.Width = Math.Min(txtSize, 100 * 256);
+            //     col.CustomWidth = true;
+            // }
+
+            foreach (var c in sheet.Elements<Column>())
+            {
+                Console.WriteLine($"Col width: {c.Width}");
+            }
+
             workbookPart.Workbook.Save();
         }
-		
+
         return outputStream.ToArray();
     }
 }

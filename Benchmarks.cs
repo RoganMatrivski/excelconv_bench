@@ -4,6 +4,8 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnostics.Windows.Configs;
 using BenchmarkDotNet.Diagnosers;
 
+// [EtwProfiler(performExtraBenchmarksRun: false)]
+// [EventPipeProfiler(EventPipeProfile.CpuSampling)]
 public class TestBenchmark
 {
     // private const int COL = 256;
@@ -23,18 +25,17 @@ public class TestBenchmark
     }
 
     [Benchmark]
-    public void NPOI() => OldConverter.ConvertToExcel(data, "1234");
+    public byte[] NPOI() => OldConverter.ConvertToExcel(data, "1234");
 
     [Benchmark]
-    public void OpenXML() => AppParser.ConvertTable(data);
+    public byte[] OpenXML() => AppParser.ConvertTable(data);
 }
 
-[EtwProfiler(performExtraBenchmarksRun: false)]
 [EventPipeProfiler(EventPipeProfile.CpuSampling)]
 public class TestSingleBenchmark
 {
-    private const int COL = 32;
-    private const int ROW = 32;
+    private const int COL = 100;
+    private const int ROW = 1_000_000;
     private DataTable data;
 
     // [Params(100, 200, 500, 1000)]
@@ -52,7 +53,9 @@ public class TestSingleBenchmark
 
     [Benchmark]
     public byte[] NPOI() => OldConverter.ConvertToExcel(data, "1234");
+    [Benchmark]
+    public byte[] NPOI_new() => OldConverter.ConvertToExcel_New(data, "1234");
 
-    // [Benchmark]
+    [Benchmark]
     public byte[] OpenXML() => AppParser.ConvertTable(data);
 }
