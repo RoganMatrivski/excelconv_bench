@@ -60,6 +60,7 @@ dlldata.c
 
 # Benchmark Results
 BenchmarkDotNet.Artifacts/
+BenchmarkDotNet.Artifacts
 
 # .NET Core
 project.lock.json
@@ -403,6 +404,8 @@ FodyWeavers.xsd
 # .NET Core build folders
 bin/
 obj/
+bin
+obj
 
 # Common node modules locations
 /node_modules
@@ -411,3 +414,5 @@ obj/
 # End of https://www.toptal.com/developers/gitignore/api/csharp,dotnetcore
 
 result/
+temp/
+temp

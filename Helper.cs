@@ -4,18 +4,12 @@
 // using System.Drawing;
 // using SixLabors.ImageSharp.Drawing;
 
+using System.Data;
+using Humanizer;
 using SkiaSharp;
 
 public static class Helper
 {
-    // public static Font GetSixLaborsFont(string family = "Carlito", int size = 11)
-    // {
-    //     var fontcoll = SystemFonts.Collection;
-    //     var fontfamily = !string.IsNullOrWhiteSpace(family) ? fontcoll.Get(family) : SystemFonts.Collection.Families.FirstOrDefault();
-
-    //     return new Font(fontfamily, size);
-    // }
-
     // /**
     // * Excel measures columns in units of 1/256th of a character width
     // * but the docs say nothing about what particular character is used.
@@ -76,5 +70,33 @@ public static class Helper
         }
 
         return width * 256; // Multiply by 256 because Excel stores width in units of 1/256ths.
+    }
+}
+
+public static class IEnumerableExtensions
+{
+    public static IEnumerable<(int Index, T Item)> Indexed<T>(this IEnumerable<T> source)
+    {
+        return source.Select((item, index) => (index, item));
+    }
+
+    public static IEnumerable<DataColumn> AsEnumerable(this DataColumnCollection source)
+    {
+        return source.Cast<DataColumn>();
+    }
+
+    public static void PrintReadableTime(this TimeSpan time, string prepend = "", string append = "")
+    {
+        string readableTime = time.Humanize();
+        Console.WriteLine($"{prepend}{readableTime}{append}");
+    }
+
+    // The fact that this is not built in is such a shame
+    public static void ForEach<T>(this IEnumerable<T> @this, Action<T> action)
+    {
+        foreach (T item in @this)
+        {
+            action(item);
+        }
     }
 }

@@ -13,9 +13,9 @@ public class TestBenchmark
 
     // [Params(100, 200, 500, 1000)]
     // [Params(8, 16, 32, 64, 128)]
-    [Params(5, 10, 15, 20, 30, 40, 60, 80, 100)]
+    [Params(100, 500, 1000)]
     public int ROW;
-    [Params(5, 10, 15, 20, 30, 40, 60, 80, 100)]
+    [Params(100, 200)]
     public int COL;
 
     [GlobalSetup]
@@ -24,26 +24,33 @@ public class TestBenchmark
         data = Generator.GenerateDataTable(ROW, COL);
     }
 
-    [Benchmark]
-    public byte[] NPOI() => OldConverter.ConvertToExcel(data, "1234");
 
     [Benchmark]
-    public byte[] OpenXML() => AppParser.ConvertTable(data);
+    public void SetWidth_AutoSizeColumn() => new ConverterNPOI(data).SetupSheet().SetWidth_AutoSizeColumn().WriteToStream(Stream.Null);
+    [Benchmark]
+    public void NPOI_SkiaSharp() => new ConverterNPOI(data).SetupSheet().SetWidth_SkiaSharp().WriteToStream(Stream.Null);
+    [Benchmark]
+    public void NPOI_CharCount() => new ConverterNPOI(data).SetupSheet().SetWidth_SkiaSharp().WriteToStream(Stream.Null);
+
+    [Benchmark]
+    public void ClosedXML_SetWidth_AutoSizeColumn() => new ConverterClosedXML(data).Setup().SetWidth_AutoSizeColumn().WriteToStream(Stream.Null);
+    [Benchmark]
+    public void ClosedXML_SkiaSharp() => new ConverterClosedXML(data).Setup().SetWidth_SkiaSharp().WriteToStream(Stream.Null);
+    [Benchmark]
+    public void ClosedXML_CharCount() => new ConverterClosedXML(data).Setup().SetWidth_CharCount().WriteToStream(Stream.Null);
+
+    [Benchmark]
+    public void OpenXML_SkiaSharp() => new ConverterOpenXML(Stream.Null, data).SetSetupColumns_SkiaSharp().ExportTable().Dispose();
+    [Benchmark]
+    public void OpenXML_CharCount() => new ConverterOpenXML(Stream.Null, data).SetSetupColumns_CharCount().ExportTable().Dispose();
 }
 
-[EventPipeProfiler(EventPipeProfile.CpuSampling)]
+// [EventPipeProfiler(EventPipeProfile.CpuSampling)]
 public class TestSingleBenchmark
 {
     private const int COL = 100;
-    private const int ROW = 1_000_000;
+    private const int ROW = 100;
     private DataTable data;
-
-    // [Params(100, 200, 500, 1000)]
-    // [Params(8, 16, 32, 64, 128)]
-    // [Params(5, 10, 15, 20, 30, 40, 60, 80, 100)]
-    // public int ROW;
-    // [Params(5, 10, 15, 20, 30, 40, 60, 80, 100)]
-    // public int COL;
 
     [GlobalSetup]
     public void Setup()
@@ -52,10 +59,34 @@ public class TestSingleBenchmark
     }
 
     [Benchmark]
-    public byte[] NPOI() => OldConverter.ConvertToExcel(data, "1234");
-    [Benchmark]
-    public byte[] NPOI_new() => OldConverter.ConvertToExcel_New(data, "1234");
+    public DataTable DatasetGeneration() => Generator.GenerateDataTable(ROW, COL);
 
     [Benchmark]
-    public byte[] OpenXML() => AppParser.ConvertTable(data);
+    public void NPOI_SetWidth_AutoSizeColumn() => new ConverterNPOI(data).SetupSheet().SetWidth_AutoSizeColumn().WriteToStream(Stream.Null);
+    [Benchmark]
+    public void NPOI_SkiaSharp() => new ConverterNPOI(data).SetupSheet().SetWidth_SkiaSharp().WriteToStream(Stream.Null);
+    [Benchmark]
+    public void NPOI_CharCount() => new ConverterNPOI(data).SetupSheet().SetWidth_CharCount().WriteToStream(Stream.Null);
+
+    [Benchmark]
+    public void ClosedXML_SetWidth_AutoSizeColumn() => new ConverterClosedXML(data).Setup().SetWidth_AutoSizeColumn().WriteToStream(Stream.Null);
+    [Benchmark]
+    public void ClosedXML_SkiaSharp() => new ConverterClosedXML(data).Setup().SetWidth_SkiaSharp().WriteToStream(Stream.Null);
+    [Benchmark]
+    public void ClosedXML_CharCount() => new ConverterClosedXML(data).Setup().SetWidth_CharCount().WriteToStream(Stream.Null);
+
+    [Benchmark]
+    public void OpenXML_SkiaSharp() => new ConverterOpenXML(Stream.Null, data).SetSetupColumns_SkiaSharp().ExportTable().Dispose();
+    [Benchmark]
+    public void OpenXML_CharCount() => new ConverterOpenXML(Stream.Null, data).SetSetupColumns_CharCount().ExportTable().Dispose();
+}
+
+
+[EventPipeProfiler(EventPipeProfile.CpuSampling)]
+public class TestSingleBenchmark_Dynamic
+{
+    private int ROW;
+    private int COL;
+
+    // [Global]
 }

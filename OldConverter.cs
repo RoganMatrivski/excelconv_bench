@@ -1,13 +1,14 @@
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
-
+using SixLabors.Fonts;
 using System.Data;
+using System.Diagnostics;
 
-public class OldConverter
+public class OldConverter_OLD
 {
     public static byte[] ConvertToExcel(DataTable dt, string UserID)
     {
-        int excellColumnMaxLengthValue = 512;
+        int excellColumnMaxLengthValue = 255;
 
         int maxRows = 1048576;
 
@@ -86,7 +87,7 @@ public class OldConverter
         // THIS ONE IS PROBLEMATIC
         // Either AutoSizeColumn, GetColumnWidth, or SetColumnWidth causes SIGNIFICANT slow down
         // Tracks down to NPOI.GetCellWidth -> SixLabors.Fonts causes slowdown.
-        for (int i = 0; i <= dt.Columns.Count; i++)
+        for (int i = 0; i < dt.Columns.Count; i++)
         {
             sheet.AutoSizeColumn(i);
 
@@ -101,8 +102,8 @@ public class OldConverter
 
         return ms.ToArray();
     }
-	
-	public static byte[] ConvertToExcel_New(DataTable dt, string UserID)
+
+    public static byte[] ConvertToExcel_New(DataTable dt, string UserID)
     {
         int excellColumnMaxLengthValue = 255;
 
@@ -180,7 +181,7 @@ public class OldConverter
             }
         }
 
-        var defaultCharWidth = Helper.GetDefaultCharWidth();
+        // var defaultCharWidth = Helper.GetDefaultCharWidth();
 
         var longestStringByColumns = dt.Columns.Cast<DataColumn>()
         .Select(col => dt
@@ -194,8 +195,8 @@ public class OldConverter
         {
             // Measure string padded with some char for some padding space
             // It won't be visible in the final result, i promise
-            var stringWidth = Helper.GetStringWidth(longestStringByColumns[i] + new string('0', 6) ?? "", defaultCharWidth);
-            sheet.SetColumnWidth(i, Math.Min(excellColumnMaxLengthValue * 256, stringWidth));
+            // var stringWidth = Helper.GetStringWidth(longestStringByColumns[i] + new string('0', 6) ?? "", defaultCharWidth);
+            sheet.SetColumnWidth(i, Math.Min(excellColumnMaxLengthValue, longestStringByColumns[i].Length) * 256);
         }
 
         MemoryStream ms = new MemoryStream();

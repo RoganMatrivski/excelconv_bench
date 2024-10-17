@@ -5,7 +5,7 @@ using DocumentFormat.OpenXml.Spreadsheet;
 using SixLabors.Fonts;
 using System.Linq;
 
-public static class AppParser
+public static class AppParser_OLD
 {
     public static int RunConvertAndReturnExitCode(Args.ConvertOptions opts)
     {
